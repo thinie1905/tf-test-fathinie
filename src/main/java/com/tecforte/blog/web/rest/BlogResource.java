@@ -116,4 +116,37 @@ public class BlogResource {
         blogService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
     }
+    
+    /**
+     *  {@code DELETE /blogs/clean} : clean blog entries based on the keyword entered
+     *  
+     *  @param keyword for which the blog entries' title or content contains
+     *  @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
+    //Ques 1 : remove blog entries that contain keyword entered
+    @DeleteMapping("/blogs/clean")
+    public ResponseEntity<Void> cleanBlogEntries(@Valid @RequestBody String keyword){
+    	log.debug("REST request to delete Blog Entries with keyword : {}", keyword);
+    	keyword = "%" + keyword + "%";
+    	blogService.deleteBlogEntries(keyword);
+    	
+    	return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, "entry", keyword)).build();
+    }
+    
+    /**
+     *  {@code DELETE /blogs/:id/clean} : clean blog entries based on the keyword entered
+     *  
+     *  @param keyword for which the blog entries' title or content contains
+     *  @param id the id of the blogDTO.
+     *  @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
+     */
+    //Ques 2 : remove blog entries that contain keyword entered from specific blog
+    @DeleteMapping("/blogs/{id}/clean")
+    public ResponseEntity<Void> cleanBlogEntriesFromBlogId(@PathVariable Long id, @Valid @RequestBody String keyword){
+    	log.debug("REST request to delete Blog Entries with keyword from blog id : {}", id, keyword);
+    	keyword = "%" + keyword + "%";
+    	blogService.deleteEntryFromBlogID(id, keyword);
+    	
+    	return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, "entry", keyword)).build();
+    }
 }

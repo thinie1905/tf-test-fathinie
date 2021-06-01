@@ -1,7 +1,9 @@
 package com.tecforte.blog.web.rest;
 
+import com.tecforte.blog.domain.enumeration.Emoji;
 import com.tecforte.blog.service.EntryService;
 import com.tecforte.blog.web.rest.errors.BadRequestAlertException;
+import com.tecforte.blog.service.dto.BlogDTO;
 import com.tecforte.blog.service.dto.EntryDTO;
 
 import io.github.jhipster.web.util.HeaderUtil;
@@ -13,17 +15,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * REST controller for managing {@link com.tecforte.blog.domain.Entry}.
@@ -58,10 +62,57 @@ public class EntryResource {
         if (entryDTO.getId() != null) {
             throw new BadRequestAlertException("A new entry cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        
+        /** Ques 1: Validate emoji emotion **/
+        if (entryDTO != null) {
+        	Emoji emoji = entryDTO.getEmoji();
+        	BlogDTO blogDTO = entryService.getBlog(entryDTO);
+            
+            //Validate invalid emoji for its blog
+            //Throw error: Negative emoji for positive blog and positive emoji for negative blog
+            if (blogDTO != null){
+            	if ((blogDTO.isPositive() && (emoji.equals(Emoji.SAD) || emoji.equals(Emoji.ANGRY))) ||
+            			(!blogDTO.isPositive() && (emoji.equals(Emoji.HAHA) || emoji.equals(Emoji.LIKE)))){
+            		throw new BadRequestAlertException("Invalid Emoji", ENTITY_NAME, "invalidEmoji");
+            	}           	
+            }
+            
+            
+            /** Ques 2: Validate emotion keyword **/
+            String title = entryDTO.getTitle().toLowerCase();
+            String content = entryDTO.getContent().toLowerCase();
+            
+            if (blogDTO != null) {
+            	//Keyword 'SAD', 'FEAR', 'LONELY
+            	//Validate these keywords for its blog
+            	if (blogDTO.isPositive() && 
+            			((isStringMatch(title, "sad") || isStringMatch(title, "fear") || isStringMatch(title, "lonely")) || 
+            			(isStringMatch(content, "sad") || isStringMatch(content, "fear") || isStringMatch(content, "lonely"))) ){
+            		
+            		throw new BadRequestAlertException("Invalid Content", ENTITY_NAME, "invalidContent");
+            		
+            	} //Keyword 'LOVE', 'HAPPY', 'TRUST'
+            	else if (!blogDTO.isPositive() && 
+            			((isStringMatch(title, "love") || isStringMatch(title, "happy") || isStringMatch(title, "trust")) || 
+                    			(isStringMatch(content, "love") || isStringMatch(content, "happy") || isStringMatch(content, "trust"))) ) {
+            		
+            		throw new BadRequestAlertException("Invalid Content", ENTITY_NAME, "invalidContent");
+            		
+            	}
+            } 
+        }
+               
         EntryDTO result = entryService.save(entryDTO);
         return ResponseEntity.created(new URI("/api/entries/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
+    }
+    
+    public static boolean isStringMatch(String contentTitle, String keyword) {
+    	String strPattern = "\\b" + keyword + "\\b";
+    	Pattern pattern = Pattern.compile(strPattern);
+    	Matcher match = pattern.matcher(contentTitle);
+    	return match.find();    	
     }
 
     /**

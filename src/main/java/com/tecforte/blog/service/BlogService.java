@@ -2,6 +2,7 @@ package com.tecforte.blog.service;
 
 import com.tecforte.blog.domain.Blog;
 import com.tecforte.blog.repository.BlogRepository;
+import com.tecforte.blog.repository.EntryRepository;
 import com.tecforte.blog.service.dto.BlogDTO;
 import com.tecforte.blog.service.mapper.BlogMapper;
 import org.slf4j.Logger;
@@ -27,10 +28,13 @@ public class BlogService {
     private final BlogRepository blogRepository;
 
     private final BlogMapper blogMapper;
+    
+    private final EntryRepository entryRepository;
 
-    public BlogService(BlogRepository blogRepository, BlogMapper blogMapper) {
+    public BlogService(BlogRepository blogRepository, BlogMapper blogMapper, EntryRepository entryRepository) {
         this.blogRepository = blogRepository;
         this.blogMapper = blogMapper;
+        this.entryRepository = entryRepository;
     }
 
     /**
@@ -82,4 +86,28 @@ public class BlogService {
         log.debug("Request to delete Blog : {}", id);
         blogRepository.deleteById(id);
     }
+    
+    /**
+     * Delete entry by its keyword from title or content
+     * 
+     * @param keyword
+     * 
+     */
+    public void deleteBlogEntries(String keyword) {
+    	log.debug("Request to delete Blog entries by keyword : {}", keyword);
+    	entryRepository.deleteEntryWithKeyword(keyword);
+    }
+    
+    /**
+     * Delete entry by its keyword from title or content from specific blog
+     * 
+     * @param keyword
+     * @param blog id
+     * 
+     */
+    public void deleteEntryFromBlogID(Long id, String keyword) {
+    	log.debug("Request to delete Blog entries by keyword from blog ID : {}", id, keyword);
+    	entryRepository.deleteEntryFromBlogID(id, keyword);
+    }
+    
 }

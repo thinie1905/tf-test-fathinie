@@ -2,6 +2,7 @@ package com.tecforte.blog.service;
 
 import com.tecforte.blog.domain.Entry;
 import com.tecforte.blog.repository.EntryRepository;
+import com.tecforte.blog.service.dto.BlogDTO;
 import com.tecforte.blog.service.dto.EntryDTO;
 import com.tecforte.blog.service.mapper.EntryMapper;
 import org.slf4j.Logger;
@@ -26,10 +27,13 @@ public class EntryService {
     private final EntryRepository entryRepository;
 
     private final EntryMapper entryMapper;
+    
+    private final BlogService blogService;
 
-    public EntryService(EntryRepository entryRepository, EntryMapper entryMapper) {
+    public EntryService(EntryRepository entryRepository, EntryMapper entryMapper, BlogService blogService) {
         this.entryRepository = entryRepository;
         this.entryMapper = entryMapper;
+        this.blogService = blogService;
     }
 
     /**
@@ -80,5 +84,21 @@ public class EntryService {
     public void delete(Long id) {
         log.debug("Request to delete Entry : {}", id);
         entryRepository.deleteById(id);
+    }
+    
+    /**
+     * Get Blog by its id from entry
+     * 
+     * @param blog id from entry
+     * @return BlogDTO
+     * 
+     */
+    public BlogDTO getBlog(EntryDTO entryDTO) {
+    	log.debug("Request to get blog from entry : {}", entryDTO);
+    	
+    	Optional<BlogDTO> blogDTOOpt = blogService.findOne(entryDTO.getBlogId());
+    	BlogDTO blogDTO = blogDTOOpt.isPresent() ? blogDTOOpt.get() : null;
+    	
+        return blogDTO;
     }
 }

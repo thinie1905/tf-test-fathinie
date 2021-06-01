@@ -35,4 +35,12 @@ export class BlogService {
   delete(id: number): Observable<HttpResponse<any>> {
     return this.http.delete<any>(`${this.resourceUrl}/${id}`, { observe: 'response' });
   }
+
+  delete(keyword: string): Observable<HttpResponse<any>> {
+    return this.http.delete<any>(`${this.resourceUrl}/clean`, keyword, { observe: 'response' });
+  }
+
+  delete(id: number, keyword: string): Observable<HttpResponse<any>> {
+    return this.http.delete<any>(`${this.resourceUrl}/${id}/clean`, keyword, { observe: 'response' });
+  }
 }
